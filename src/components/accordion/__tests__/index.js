@@ -6,69 +6,39 @@
  *
  * @jest-environment node
  */
+import * as fs from 'fs';
+import * as path from 'path';
 import { JSDOM } from 'jsdom';
 import { TestParser } from '../../../test-parser';
 import { accordionTests } from '../requirements';
 
+const ACCORDION_HTML_TO_TEST = path.join(
+  __dirname,
+  './fixtures/accordion.html'
+);
+
 /**
- * Variable representing a demo of a component
- *
- * @todo the HTML should be pulled in from a static HTML file (path.join(__dirname, 'fixtures/div--variant-one.html'))
+ * Variable representing a HTML of a component. Includes _entire_ HTML document.
  * @type {string}
  */
-const accordionHTML = `<ul data-accordion class="bx--accordion">
-<li data-accordion-item class="bx--accordion__item">
-  <button class="bx--accordion__heading" aria-expanded="false" aria-controls="pane1">
-      <svg class="bx--accordion__arrow" width="7" height="12" viewBox="0 0 7 12">
-        <path fill-rule="nonzero" d="M5.569 5.994L0 .726.687 0l6.336 5.994-6.335 6.002L0 11.27z" />
-      </svg>
-    <div class="bx--accordion__title">Section 1 title</div>
-  </button>
-  <div id="pane1" class="bx--accordion__content">
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-      aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-  </div>
-</li>
-<li data-accordion-item class="bx--accordion__item">
-  <button class="bx--accordion__heading" aria-expanded="false" aria-controls="pane2">
-      <svg class="bx--accordion__arrow" width="7" height="12" viewBox="0 0 7 12">
-        <path fill-rule="nonzero" d="M5.569 5.994L0 .726.687 0l6.336 5.994-6.335 6.002L0 11.27z" />
-      </svg>
-    <div class="bx--accordion__title">Section 2 title</div>
-  </button>
-  <div id="pane2" class="bx--accordion__content">
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-      aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-  </div>
-</li>
-<li data-accordion-item class="bx--accordion__item">
-  <button class="bx--accordion__heading" aria-expanded="false" aria-controls="pane3">
-      <svg class="bx--accordion__arrow" width="7" height="12" viewBox="0 0 7 12">
-        <path fill-rule="nonzero" d="M5.569 5.994L0 .726.687 0l6.336 5.994-6.335 6.002L0 11.27z" />
-      </svg>
-    <div class="bx--accordion__title">Section 3 title</div>
-  </button>
-  <div id="pane3" class="bx--accordion__content">
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-      aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-  </div>
-</li>
-<li data-accordion-item class="bx--accordion__item">
-  <button class="bx--accordion__heading" aria-expanded="false" aria-controls="pane4">
-      <svg class="bx--accordion__arrow" width="7" height="12" viewBox="0 0 7 12">
-        <path fill-rule="nonzero" d="M5.569 5.994L0 .726.687 0l6.336 5.994-6.335 6.002L0 11.27z" />
-      </svg>
-    <div class="bx--accordion__title">Section 4 title</div>
-  </button>
-  <div id="pane4" class="bx--accordion__content">
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-      aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-  </div>
-</li>
-</ul>`;
+const accordionHTML = fs.readFileSync(ACCORDION_HTML_TO_TEST, 'utf8');
+
+/**
+ * Options when creating the window/document from the HTML that's being tested
+ * @type {object}
+ */
+const JSDOMoptions = {
+  runScripts: 'dangerously',
+  resources: 'usable',
+};
+
+/**
+ * Adjusts global window and document to be from the HTML we're gonna test
+ */
+const { window } = new JSDOM(accordionHTML, JSDOMoptions);
 
 describe('Runs Accordion tests on fixture demo', () => {
   // gathering the window _should_ be done on a per-variant-demo-file basis via a common `setupDom` function,
   //    but don't want to spend time on JSDom setup for this PR
-  TestParser(accordionTests(), new JSDOM(accordionHTML).window);
+  TestParser(accordionTests(), window);
 });
