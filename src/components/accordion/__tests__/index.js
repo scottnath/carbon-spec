@@ -67,10 +67,8 @@ const accordionHTML = `<ul data-accordion class="bx--accordion">
 </li>
 </ul>`;
 
-// this _should_ be done on a per-variant-demo-file basis via a common `setupDom` function,
-//    but don't want to spend time on JSDom setup for this PR
-const { document } = new JSDOM(accordionHTML).window;
-
 describe('Runs Accordion tests on fixture demo', () => {
-  TestParser(accordionTests(), document);
+  // gathering the window _should_ be done on a per-variant-demo-file basis via a common `setupDom` function,
+  //    but don't want to spend time on JSDom setup for this PR
+  TestParser(accordionTests(), new JSDOM(accordionHTML).window);
 });

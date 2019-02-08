@@ -43,8 +43,10 @@ const getDomFragment = (test, docFragment) => {
  * @param {scenario-test-object} test - Scenario being tested
  * @param {DocumentFragment} docFragment - fragment being tested
  */
-const itter = (test, docFragment) => {
-  it(test.scenario, () => test.getActual(docFragment).then(test.comparison));
+const itter = (test, docFragment, wndw) => {
+  it(test.scenario, () =>
+    test.getActual(docFragment, wndw).then(test.comparison)
+  );
 };
 
 /**
@@ -52,10 +54,15 @@ const itter = (test, docFragment) => {
  * This implementation was build for Karma/Mocha but does not have any Karma specific features.
  *
  * @param {feature-test-object[]} tests - test runner called from a specific component/application page
- * @param {DocumentFragment} docFragment - default docFragment object
+ * @param {DocumentFragment|Window} docFragment - default docFragment object or window object that contains a document
  * @param {integer} [index] - current index when running a `set`
  */
-const testParser = (tests, docFragment, index) => {
+const testParser = (tests, docFragment, wndw, index) => {
+  if (docFragment.document && typeof wndw === 'undefined') {
+    wndw = docFragment;
+    docFragment = wndw.document;
+  }
+
   if (!Array.isArray(tests)) return;
   tests.forEach(test => {
     if (test.feature) {
@@ -67,7 +74,7 @@ const testParser = (tests, docFragment, index) => {
             beforeEach(test.beforeEach);
           for (let i = 0; i < docFragmentArray.length; i++) {
             describe(`Set index: ${i}`, () => {
-              testParser(test.tests, docFragmentArray[i], i);
+              testParser(test.tests, docFragmentArray[i], wndw, i);
             });
           }
         });
@@ -76,7 +83,7 @@ const testParser = (tests, docFragment, index) => {
           if (typeof test.before === 'function') before(test.before);
           if (typeof test.beforeEach === 'function')
             beforeEach(test.beforeEach);
-          testParser(test.tests, docFragment);
+          testParser(test.tests, docFragment, wndw);
         });
       }
     } else if (test.scenario) {
@@ -85,22 +92,22 @@ const testParser = (tests, docFragment, index) => {
         for (let i = 0; i < docFragmentArray.length; i++) {
           describe(`Set index: ${i}`, () => {
             if (typeof test.given === 'function') {
-              if (test.given(docFragment, index))
-                itter(test, docFragmentArray[i]);
+              if (test.given(docFragment, wndw, index))
+                itter(test, docFragmentArray[i], wndw);
             } else {
-              itter(test, docFragmentArray[i]);
+              itter(test, docFragmentArray[i], wndw);
             }
           });
         }
       } else if (Array.isArray(test.inherit)) {
         describe(test.scenario, () => {
-          testParser(test.inherit, getDomFragment(test, docFragment));
+          testParser(test.inherit, getDomFragment(test, docFragment), wndw);
         });
       } else if (typeof test.given === 'function') {
-        if (test.given(docFragment, index))
-          itter(test, getDomFragment(test, docFragment));
+        if (test.given(docFragment, wndw, index))
+          itter(test, getDomFragment(test, docFragment), wndw);
       } else {
-        itter(test, getDomFragment(test, docFragment));
+        itter(test, getDomFragment(test, docFragment), wndw);
       }
     }
   });
