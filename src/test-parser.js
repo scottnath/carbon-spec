@@ -69,9 +69,10 @@ const testParser = (tests, docFragment, wndw, index) => {
       if (typeof test.set === 'function') {
         const docFragmentArray = test.set(docFragment);
         describe(test.feature, () => {
-          if (typeof test.before === 'function') before(test.before);
+          if (typeof test.before === 'function')
+            before(done => test.before(done, wndw));
           if (typeof test.beforeEach === 'function')
-            beforeEach(test.beforeEach);
+            beforeEach(done => test.beforeEach(done, docFragment, wndw));
           for (let i = 0; i < docFragmentArray.length; i++) {
             describe(`Set index: ${i}`, () => {
               testParser(test.tests, docFragmentArray[i], wndw, i);
@@ -80,9 +81,10 @@ const testParser = (tests, docFragment, wndw, index) => {
         });
       } else if (Array.isArray(test.tests)) {
         describe(test.feature, () => {
-          if (typeof test.before === 'function') before(test.before);
+          if (typeof test.before === 'function')
+            before(done => test.before(done, wndw));
           if (typeof test.beforeEach === 'function')
-            beforeEach(test.beforeEach);
+            beforeEach(done => test.beforeEach(done, docFragment, wndw));
           testParser(test.tests, docFragment, wndw);
         });
       }

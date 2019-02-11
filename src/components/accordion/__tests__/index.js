@@ -38,7 +38,11 @@ const JSDOMoptions = {
 const { window } = new JSDOM(accordionHTML, JSDOMoptions);
 
 describe('Runs Accordion tests on fixture demo', () => {
-  // gathering the window _should_ be done on a per-variant-demo-file basis via a common `setupDom` function,
-  //    but don't want to spend time on JSDom setup for this PR
+  beforeAll(done => {
+    window.addEventListener('load', () => {
+      done();
+    });
+  });
+
   TestParser(accordionTests(), window);
 });
