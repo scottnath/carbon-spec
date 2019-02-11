@@ -47,6 +47,7 @@ const standardDiv = {
       const component = getDiv(docFragment, defaults.selectors);
 
       resolve({
+        component,
         html: component.div.innerHTML,
         content: component.content.textContent.trim(),
         classes: component.div.classList.value,
@@ -60,6 +61,12 @@ const standardDiv = {
     expect(actual.content, "said div's content is meaningful").to.not.equal(
       defaults.content.text
     );
+
+    expect(window.getComputedStyle(actual.component.div).backgroundColor).to
+      .exist;
+    expect(
+      window.getComputedStyle(actual.component.div).backgroundColor
+    ).to.equal('red');
   },
 };
 
