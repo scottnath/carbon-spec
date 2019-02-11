@@ -3,27 +3,12 @@
  */
 
 /**
- * @todo Temporarily placed in file for POC
- */
-const utils = {
-  keyCodes: {
-    SPACE: 32,
-    RETURN: 13,
-  },
-  getCSSProperty: (element, property, wndw = window) =>
-    element.currentStyle
-      ? element.currentStyle[property]
-      : wndw.getComputedStyle(element, null)[property],
-};
-
-/**
  * Accordion user test configurations
  * @typedef {object} accordionTestConfig
  * @property {accordionElements} selectors - Selectors to grab each element for a accordion component
  */
 const defaults = {
   activeClass: 'bx--accordion__item--active',
-  animationTimeout: 350,
   selectors: {
     root: 'ul',
     sections: 'li',
@@ -68,6 +53,21 @@ const getAccordionSection = (docFragment, selectors) => {
   };
 };
 
+/**
+ * Gets all of the individual accordion sections within an Accordion Component instance
+ * @param {DocumentFragment} docFragment - DOM fragment to search
+ * @returns {DocumentFragment[]} array of document fragments for each input
+ */
+const getAllSections = docFragment => {
+  const component = getAccordion(docFragment, defaults.selectors);
+  return component.sections;
+};
+
+/**
+ * Tests to see if an accordion section is closed
+ * @param {DocumentFragment} docFragment - document fragment to test
+ * @param {object} wndw - window object
+ */
 const isClosed = (docFragment, wndw) => {
   const component = getAccordionSection(docFragment, defaults.selectors);
   /** @todo Jest doesn't seem to support testing live CSS styles from a class */
@@ -76,9 +76,39 @@ const isClosed = (docFragment, wndw) => {
 };
 
 /**
- * Very basic test for a standard accordion. These ensure that the Scenario "Standard accordion"
+ * Very basic test for a standard accordion. These ensure that the Feature "Accordion follows best practices"
  *   has tests for each scenario and it's `then`s
- * @type {scenario-test-object}
+ * @type {object}
+ * @property {scenario-test-object} header - test for section header
+ */
+const bestPractices = {
+  header: {
+    scenario: 'Accordion header behaves as a button',
+    getActual: (docFragment = document, wndw = window) =>
+      new Promise(resolve => {
+        const component = getAccordionSection(docFragment, defaults.selectors);
+
+        resolve({
+          tagName: component.header.tagName.toLowerCase(),
+        });
+      }),
+    comparison: actual => {
+      // see ./accordion/requirements.feature file for Scenario "Accordion header behaves as a button"
+      //  these tests conform to the `Then...` section
+      expect(
+        actual.tagName,
+        'said section header behaves as a button'
+      ).to.equal('button');
+    },
+  },
+};
+
+/**
+ * Very basic test for a standard accordion. These ensure that the Feature "Opening an individual accordion section"
+ *   has tests for each scenario and it's `then`s
+ * @type {object}
+ * @property {scenario-test-object} mouse - test for mouse user
+ * @property {scenario-test-object} screenReader - test for screen reader user
  */
 const openAccordion = {
   mouse: {
@@ -95,7 +125,6 @@ const openAccordion = {
         //     panelHeight: utils.getCSSProperty(component.panel, 'height', wndw),
         //   });
         // }, defaults.animationTimeout);
-
         resolve({
           hasActiveClass: component.container.classList.contains(
             defaults.activeClass
@@ -113,44 +142,6 @@ const openAccordion = {
       expect(actual.hasActiveClass, "said section's panel will be opened").to.be
         .true;
     },
-  },
-  keyboard: keyPressed => {
-    return {
-      scenario: `Open an accordion panel as a keyboard user using ${keyPressed}`,
-      given: isClosed,
-      getActual: (docFragment = document, wndw = window) =>
-        new Promise(resolve => {
-          const component = getAccordionSection(
-            docFragment,
-            defaults.selectors
-          );
-          component.header.focus();
-          const originalLocation = wndw.document.activeElement;
-          const keyEvent = new wndw.Event('keydown', {
-            bubbles: true,
-            cancelable: false,
-            which: utils.keyCodes[keyPressed],
-          });
-          component.header.dispatchEvent(keyEvent);
-
-          resolve({
-            hasActiveClass: component.container.classList.contains(
-              defaults.activeClass
-            ),
-            newLocation: wndw.document.activeElement,
-            originalLocation,
-          });
-        }),
-      comparison: actual => {
-        // see ./accordion/requirements.feature file for Scenario `Open an accordion panel as a keyboard user using ${keyPressed}`
-        //  these tests conform to the `Then...` section
-        expect(actual.hasActiveClass, "said section's panel will be opened").to
-          .be.true;
-        expect(actual.newLocation, 'my focus position did not change').to.equal(
-          actual.originalLocation
-        );
-      },
-    };
   },
   screenReader: {
     scenario: 'Open an accordion panel as a screen reader user',
@@ -188,17 +179,12 @@ const openAccordion = {
  * @return {scenario-test-object[]} test objects for use in `testParser`
  */
 export const accordionTests = () => {
-  /**
-   * Gets all of the individual accordion sections within an Accordion Component instance
-   * @param {DocumentFragment} docFragment - DOM fragment to search
-   * @returns {DocumentFragment[]} array of document fragments for each input
-   */
-  const getAllSections = docFragment => {
-    const component = getAccordion(docFragment, defaults.selectors);
-    return component.sections;
-  };
-
   return [
+    {
+      feature: 'Accordion follows best practices', // matches the `Feature` name in requirements.feature
+      set: getAllSections,
+      tests: [bestPractices.header],
+    },
     {
       feature: 'Expanding an individual accordion section', // matches the `Feature` name in requirements.feature
       set: getAllSections,
@@ -212,12 +198,7 @@ export const accordionTests = () => {
         });
         done();
       },
-      tests: [
-        openAccordion.mouse,
-        openAccordion.screenReader,
-        openAccordion.keyboard('SPACE'),
-        openAccordion.keyboard('RETURN'),
-      ],
+      tests: [openAccordion.mouse, openAccordion.screenReader],
     },
   ];
 };
