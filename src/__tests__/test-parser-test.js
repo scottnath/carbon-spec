@@ -33,6 +33,7 @@ const JSDOMoptions = { resources: 'usable' };
  * Adjusts global window and document to be from the HTML we're gonna test
  */
 const { window } = new JSDOM(divHTML, JSDOMoptions);
+global.window = window;
 global.document = window.document;
 
 describe('TestParser', () => {
